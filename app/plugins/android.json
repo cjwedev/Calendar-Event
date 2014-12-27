@@ -1,0 +1,40 @@
+{
+    "prepare_queue": {
+        "installed": [],
+        "uninstalled": []
+    },
+    "config_munge": {
+        "files": {
+            "res/xml/config.xml": {
+                "parents": {
+                    "/*": [
+                        {
+                            "xml": "<feature name=\"InAppBrowser\"><param name=\"android-package\" value=\"org.apache.cordova.inappbrowser.InAppBrowser\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"DatePickerPlugin\"><param name=\"android-package\" value=\"com.plugin.datepicker.DatePickerPlugin\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Cache\"><param name=\"android-package\" value=\"at.modalog.cordova.plugin.cache.Cache\" /></feature>",
+                            "count": 1
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "installed_plugins": {
+        "org.apache.cordova.inappbrowser": {
+            "PACKAGE_NAME": "com.bewithmyfamily"
+        },
+        "com.plugin.datepicker": {
+            "PACKAGE_NAME": "com.bewithmyfamily"
+        },
+        "at.modalog.cordova.plugin.cache": {
+            "PACKAGE_NAME": "com.bewithmyfamily"
+        }
+    },
+    "dependent_plugins": {}
+}

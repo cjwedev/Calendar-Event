@@ -1,0 +1,9 @@
+{
+  "firebase": "family-event",
+  "public": ".",
+  "ignore": [
+    "firebase.json",
+    "**/.*",
+    "**/node_modules/**"
+  ]
+}
