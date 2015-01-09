@@ -7,8 +7,8 @@ var MainCtrl = function ($rootScope, $scope, $state, $cookieStore, $firebase) {
     if (angular.isUndefined($cookieStore.get('user')) || $cookieStore.get('user') === null)
         $state.go('signin');
 
+    // When profile data is synchronized, stores it into cookie
     $scope.$watch('profile.profile.uid', function(newVal, oldVal) {
-        debugger;
         $cookieStore.put('profile', $scope.profile);
     });
 

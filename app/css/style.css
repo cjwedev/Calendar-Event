@@ -1,3 +1,16 @@
 .container-top {
     padding-top: 30px;
 }
+
+.no-padding-l {
+    padding-left: 0px !important;
+}
+
+.mb10 {
+    margin-bottom: 0px !important;
+}
+
+.hr-margin {
+    margin-top: 5px !important;
+    margin-bottom: 15px !important;
+}
