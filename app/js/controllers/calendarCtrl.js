@@ -18,6 +18,9 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     $scope.eventList = sync.$asArray();
     $scope.$watch('eventList.length', function(){
         debugger;
+        for (i = 0; i < $scope.eventList.length; i++) {
+            var event = $scope.eventList[i];
+        }
     });
 
     $scope.initList = function() {
