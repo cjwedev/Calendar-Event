@@ -1,4 +1,4 @@
-<div id="container" class="container container-top text-center" ng-init="initList()">
+<div id="container" class="container container-top text-center">
     <!-- LOGIN -->
     <div class="col-xs-4 text-left">
     </div>
@@ -14,5 +14,53 @@
     <hr class="hr-margin" />
 </div>
 <div class="container">
+    <div ng-show="dayList.length != 0">
+        <ul class="nav nav-pills">
+            <li id="yearTab" role="presentation" class="col-xs-3 text-center category-margin" ng-class="{active:menuType=='year'}">
+                <a href="javascript:void(0);" class="main-tab-border" ng-click="showEventList('year')">Year</a>
+            </li>
+            <li id="monthTab" role="presentation" class="col-xs-3 text-center category-margin" ng-class="{active:menuType=='month'}">
+                <a href="javascript:void(0);" class="main-tab-border" ng-click="showEventList('month')">Month</a>
+            </li>
+            <li id="weekTab" role="presentation" class="col-xs-3 text-center category-margin" ng-class="{active:menuType=='week'}">
+                <a href="javascript:void(0);" class="main-tab-border" ng-click="showEventList('week')">Week</a>
+            </li>
+            <li id="dayTab" role="presentation" class="col-xs-3 text-center category-margin" ng-class="{active:menuType=='day'}">
+                <a href="javascript:void(0);" class="main-tab-border" ng-click="showEventList('day')">Day</a>
+            </li>
+        </ul>
+    </div>
+
+    <div ng-show="dayList.length == 0">
+        <ul class="nav nav-pills">
+            <li id="yearTab" role="presentation" class="col-xs-4 text-center category-margin" ng-class="{active:menuType=='year'}">
+                <a href="javascript:void(0);" class="main-tab-border" ng-click="showEventList('year')">Year</a>
+            </li>
+            <li id="monthTab" role="presentation" class="col-xs-4 text-center category-margin" ng-class="{active:menuType=='month'}">
+                <a href="javascript:void(0);" class="main-tab-border" ng-click="showEventList('month')">Month</a>
+            </li>
+            <li id="weekTab" role="presentation" class="col-xs-4 text-center category-margin" ng-class="{active:menuType=='week'}">
+                <a href="javascript:void(0);" class="main-tab-border" ng-click="showEventList('day')">Week</a>
+            </li>
+        </ul>
+    </div>
+
+    <div ng-repeat="day_list in showList">
+        <div class="date-title">
+            {{ day_list["date"] }}
+        </div>
+        <div class="event-list-section">
+            <div class="event-individual" ng-repeat="event in day_list['array']">
+                <div class="col-xs-3 text-center event-time">{{ event.time }}</div>
+                <div class="col-xs-6">
+                    <div class="event-title">{{ event.title }}</div>
+                    <div>2 Members</div>
+                </div>
+                <div class="col-xs-3 text-right event-alert"><span class="circle"></span></div>
+            </div>
+        </div>
+
+    </div>
+    <br />
     <button class="btn btn-primary btn-block" onclick="location.href='#/event-create'">Add Event</button>
 </div>

@@ -8,6 +8,13 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     }
     $scope.profile = $cookieStore.get('profile');
 
+    // Initialize the variables for year, month, week, day event list
+    $scope.yearList = [];
+    $scope.monthList = [];
+    $scope.weekList = [];
+    $scope.dayList = [];
+    $scope.showList = [];
+
     var fireRef = new Firebase('https://vivid-inferno-7237.firebaseio.com');
     var sync = $firebase(fireRef.child('event').orderByChild('from'));
 
@@ -17,14 +24,85 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
 
     $scope.eventList = sync.$asArray();
     $scope.$watch('eventList.length', function(){
-        debugger;
-        for (i = 0; i < $scope.eventList.length; i++) {
+        for (var i = 0; i < $scope.eventList.length; i++) {
             var event = $scope.eventList[i];
+
+            var current_date = new Date();
+            var event_start_time = new Date(event.from);
+
+            // Year
+            if (current_date.getFullYear() == event_start_time.getFullYear()) {
+                $scope.yearList.push(event);
+
+                // Month
+                if (current_date.getMonth() == event_start_time.getMonth()) {
+                    $scope.monthList.push(event);
+
+                    // Week
+                    var current_week = $filter('date')(current_date, 'ww');
+                    var event_week = $filter('date')(event_start_time, 'ww');
+                    if (current_week == event_week) {
+                        $scope.weekList.push(event);
+
+                        // Day
+                        if (current_date.getDate() == event_start_time.getDate()) {
+                            $scope.dayList.push(event);
+                        }
+                    }
+                }
+            }
         }
     });
 
-    $scope.initList = function() {
+    // Extract only time in format (HH:MM AM) from full event date
+    function getTimeWithoutDate(full_date) {
+        return $filter('date')(new Date(full_date), 'hh:mm a');
+    }
 
+    $scope.showEventList = function(type) {
+        $scope.showList = [];
+
+        if (type == 'year') {
+            $scope.tmpList = $scope.yearList;
+            $scope.menuType = 'year';
+        } else if (type == 'month') {
+            $scope.tmpList = $scope.monthList;
+            $scope.menuType = 'month';
+        } else if (type == 'week') {
+            $scope.tmpList = $scope.weekList;
+            $scope.menuType = 'week';
+        } else if (type == 'day') {
+            $scope.tmpList = $scope.dayList;
+            $scope.menuType = 'day';
+        } else {
+            $scope.tmpList = [];
+            $scope.menuType = '';
+        }
+
+        // Group event list by day
+        for (var i = 0; i < $scope.tmpList.length; i++) {
+            var ev = $scope.tmpList[i];
+            var date_str = $filter('date')(new Date(ev.from), 'EEEE, MMM d');
+            ev.time = getTimeWithoutDate(ev.from);
+
+            var day_obj = null;
+            for (var j = 0; j < $scope.showList.length; j++) {
+                if ($scope.showList[j]["date"] == date_str) {
+                    day_obj = $scope.showList[j];
+                    $scope.showList[j]["array"].push(ev);
+                    break;
+                }
+            }
+
+            if (day_obj == null) {
+                var obj = {};
+                obj["date"] = date_str;
+                obj["array"] = [];
+                obj["array"].push(ev);
+                $scope.showList.push(obj);
+            }
+        }
+        console.log($scope.showList);
     }
 
     $scope.createEvent = function() {
@@ -40,6 +118,8 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             address     : $scope.event.address,
             created_by  : $scope.profile.profile.uid
         });
+
+        $state.go('eventList');
     };
 
     // Init date picker
@@ -49,7 +129,6 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         closeOnDateSelect: true,
         defaultDate: new Date(),
         onChangeDateTime:function(dp, $input){
-
             $scope.event.eventDate = $input.val();
         }
     });
