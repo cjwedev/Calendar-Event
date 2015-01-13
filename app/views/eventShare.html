@@ -1,0 +1,36 @@
+<div id="container" class="container container-top">
+    <div>
+        <div class="col-xs-3 text-left">
+            <ul class="pager mb10">
+                <li class="previous"><a href="#/event-create">Back</a></li>
+            </ul>
+        </div>
+        <div class="col-xs-6 text-center">
+            <h3 class="text-center">Share Event</h3>
+        </div>
+        <div class="col-xs-3 text-right">
+            <ul class="pager mb10">
+                <li class="next"><a href="javascript:void(0);">Alerts</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div>
+    <hr class="hr-margin" />
+</div>
+<div class="container">
+    <div>
+        <h4 class="text-center">{{ eventTitle }}</h4>
+    </div>
+    <div>
+        <div class="col-xs-5">
+            <input type="checkbox" value="{{ checkFavorite }}" ng-click="" /> Select Favorites
+        </div>
+        <div class="col-xs-4">
+            <input type="checkbox" value="{{ checkAll }}" ng-click="" /> Select All
+        </div>
+        <div class="col-xs-3 text-right">
+            <input type="button" class="btn btn-sm btn-primary" value="Done" ng-click="" />
+        </div>
+    </div>
+</div>

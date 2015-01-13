@@ -7,6 +7,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         $state.go('signin');
     }
     $scope.profile = $cookieStore.get('profile');
+    console.log($scope.profile);
 
     // Initialize the variables for year, month, week, day event list
     $scope.yearList = [];
@@ -15,7 +16,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     $scope.dayList = [];
     $scope.showList = [];
 
-    var fireRef = new Firebase('https://vivid-inferno-7237.firebaseio.com');
+    var fireRef = new Firebase($rootScope.firebaseUrl);
     var sync = $firebase(fireRef.child('event').orderByChild('from'));
 
     if (angular.isUndefined(sync)) {

@@ -44,6 +44,16 @@ app.config(function ($stateProvider, $httpProvider, $locationProvider, $urlRoute
             url: '/event-detail',
             templateUrl: 'views/eventDetail.html'
         })
+        .state('eventShare', {
+            url: '/event-share/:eventTitle',
+            templateUrl: 'views/eventShare.html',
+            controller: ShareCtrl
+        })
+        .state('setting' ,{
+            url: '/setting',
+            templateUrl: 'views/setting.html',
+            controller: SettingCtrl
+        })
         .state("otherwise", {
             url : '/otherwise',
             templateUrl: 'views/home.html',
