@@ -33,4 +33,18 @@
             <input type="button" class="btn btn-sm btn-primary" value="Done" ng-click="" />
         </div>
     </div>
+
+    <div class="col-xs-12" ng-repeat="group in showGroupList" style="padding-top:10px;">
+        <div class="event-list-section">
+            <div class="event-individual">
+                <div class="col-xs-10 group-title">{{ group.name }}</div>
+                <div class="col-xs-2"><input type="checkbox"></div>
+            </div>
+            <div class="event-individual" ng-repeat="user in groupUserList[group.id]">
+                <div class="col-xs-10 subtitle">{{ user.firstName }} {{user.lastName}}</div>
+                <div class="col-xs-2"><input type="checkbox"></div>
+            </div>
+        </div>
+        <br/>
+    </div>
 </div>

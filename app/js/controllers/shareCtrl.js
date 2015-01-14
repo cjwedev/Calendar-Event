@@ -16,33 +16,46 @@ var ShareCtrl = function ($rootScope, $scope, $state, $cookieStore, $stateParams
 
     // Retrieve current user's group list
     var currentGroupsObj = $scope.profile.groups;
-    $scope.currentGroupsList = {};
+    $scope.groupUserList = {};
     var groupArray = [];
     for (var key in currentGroupsObj) {
-        debugger;
         groupArray.push(key);
-        $scope.currentGroupsList[key] = [];
+        $scope.groupUserList[key] = [];
     }
+    $scope.showGroupList = [];
+    $scope.$watch('groupList.length', function() {
+        for (var i = 0; i < groupArray.length; i++) {
+            for (var j = 0; j < $scope.groupList.length; j++) {
+                if (groupArray[i] == $scope.groupList[j].$id) {
+                    $scope.showGroupList.push({
+                        id: $scope.groupList[j].$id,
+                        name: $scope.groupList[j].name
+                    });
+                }
+            }
+        }
+    });
 
     // Grouping users by their group
     var usersSync = $firebase(fireRef.child('users'));
     $scope.userList = usersSync.$asArray();
     $scope.$watch('userList.length', function() {
-        debugger;
         for (var i = 0; i < $scope.userList.length; i++) {
             if ($scope.userList[i].$id != $scope.profile.$id) {
                 var userGroups = $scope.userList[i].groups;
                 for (var k in userGroups) {
                     if (groupArray.indexOf(k) > -1) {
-                        $scope.currentGroupsList[k].push({
-                            id: $scope.userList[i].$id,
-                            fistName: $scope.userList[i].profile.first_name,
-                            lastName: $scope.userList[i].profile.last_name
-                        });
+                        var tmp = {};
+                        tmp.id = $scope.userList[i].$id;
+                        tmp.firstName = $scope.userList[i].profile.first_name;
+                        tmp.lastName = $scope.userList[i].profile.last_name;
+
+                        $scope.groupUserList[k].push(tmp);
                     }
                 }
             }
         }
+        console.log($scope.groupUserList);
     });
 
 }

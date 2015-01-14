@@ -11,7 +11,7 @@
 }
 
 .mb10 {
-    margin-bottom: 0px !important;
+    margin-bottom: 10px !important;
 }
 
 .hr-margin {
@@ -60,4 +60,15 @@
     content: ' \25CF';
     font-size: 30px;
     color: #ff002b;
+}
+
+.group-title {
+    font-size: 15px;
+    font-weight: bold;
+    padding-left: 20px !important;
+}
+
+.subtitle {
+    font-size: 15px;
+    padding-left: 30px !important;
 }

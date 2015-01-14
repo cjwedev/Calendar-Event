@@ -10,7 +10,6 @@ var MainCtrl = function ($rootScope, $scope, $state, $cookieStore, $firebase) {
 
     // When profile data is synchronized, stores it into cookie
     $scope.$watch('profile.profile', function() {
-        debugger;
         $cookieStore.put('profile', $scope.profile);
         console.log($scope.profile);
     });
