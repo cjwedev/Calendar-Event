@@ -14,6 +14,9 @@ var ShareCtrl = function ($rootScope, $scope, $state, $cookieStore, $stateParams
     var groupsSync = $firebase(fireRef.child('groups'));
     $scope.groupList = groupsSync.$asArray();
 
+    $scope.selectedGroup = [];  // Selected group checkboxes (groupId)
+    $scope.selectedUser = [];   // Selected user checkboxes (userId)
+
     // Retrieve current user's group list
     var currentGroupsObj = $scope.profile.groups;
     $scope.groupUserList = {};
@@ -58,4 +61,27 @@ var ShareCtrl = function ($rootScope, $scope, $state, $cookieStore, $stateParams
         console.log($scope.groupUserList);
     });
 
+    // Store the selected groups' Id
+    $scope.toggleGroupSelection = function(groupId) {
+        var idx = $scope.selectedGroup.indexOf(groupId);
+        if (idx > -1) {
+            // is currently selected
+            $scope.selectedGroup.splice(idx, 1);
+        } else {
+            // is newly selected
+            $scope.selectedGroup.push(groupId);
+        }
+    }
+
+    // Store the selected users' Id
+    $scope.toggleUserSelection = function(userId) {
+        var idx = $scope.selectedUser.indexOf(userId);
+        if (idx > -1) {
+            // is currently selected
+            $scope.selectedUser.splice(idx, 1);
+        } else {
+            // is newly selected
+            $scope.selectedUser.push(userId);
+        }
+    }
 }

@@ -40,7 +40,7 @@ var SettingCtrl = function ($rootScope, $scope, $state, $cookieStore, $firebase)
 
     $scope.submitSetting = function() {
         $scope.profile.groups = {};
-        debugger;
+
         for (var i = 0; i < $scope.selectedGroup.length; i++) {
             $scope.profile.groups[$scope.selectedGroup[i]] = {enabled: true};
         }
