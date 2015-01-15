@@ -24,25 +24,37 @@
     </div>
     <div>
         <div class="col-xs-5">
-            <input type="checkbox" value="{{ checkFavorite }}" ng-click="" /> Select Favorites
+            <input type="checkbox" ng-model="checkFavorite" ng-click="" /> Select Favorites
         </div>
         <div class="col-xs-4">
-            <input type="checkbox" value="{{ checkAll }}" ng-click="" /> Select All
+            <input type="checkbox" ng-model="checkAll" ng-click="toggleSelectAll()" /> Select All
         </div>
         <div class="col-xs-3 text-right">
-            <input type="button" class="btn btn-sm btn-primary" value="Done" ng-click="" />
+            <input type="button" class="btn btn-sm btn-primary" value="Done" ng-click="done()" />
         </div>
     </div>
 
     <div class="col-xs-12" ng-repeat="group in showGroupList" style="padding-top:10px;">
         <div class="event-list-section">
             <div class="event-individual">
-                <div class="col-xs-10 group-title">{{ group.name }}</div>
-                <div class="col-xs-2"><input type="checkbox" ng-click="toggleGroupSelection(group.id)"></div>
+                <div class="col-xs-10 group-title">{{ group.name }} ({{ groupUserList[group.id].length }})</div>
+                <div class="col-xs-2">
+                    <input
+                        type="checkbox"
+                        ng-checked="selectedGroup.indexOf(group.id) > -1"
+                        ng-click="toggleGroupSelection(group.id)"
+                    >
+                </div>
             </div>
             <div class="event-individual" ng-repeat="user in groupUserList[group.id]">
                 <div class="col-xs-10 subtitle">{{ user.firstName }} {{user.lastName}}</div>
-                <div class="col-xs-2"><input type="checkbox" ng-click="toggleUserSelection(user.id)"></div>
+                <div class="col-xs-2">
+                    <input
+                            type="checkbox"
+                            ng-checked="selectedUser.indexOf(user.id) > -1"
+                            ng-click="toggleUserSelection(group.id, user.id)"
+                            >
+                </div>
             </div>
         </div>
         <br/>

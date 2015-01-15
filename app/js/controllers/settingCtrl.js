@@ -8,19 +8,15 @@ var SettingCtrl = function ($rootScope, $scope, $state, $cookieStore, $firebase)
 
     // Retrieve default group list
     var fireRef = new Firebase($rootScope.firebaseUrl);
-    var groupSync = $firebase(fireRef.child('groups'));
-    $scope.groupList = groupSync.$asArray();
+    $scope.groupList = $firebase(fireRef.child('groups')).$asArray();
 
     var profileSync = $firebase(fireRef.child('users/' + $rootScope.userToken.uid));
     profileSync.$asObject().$bindTo($scope, "profile");
-    if (angular.isUndefined(profileSync)) {
-        fireRef.set({ users: { profile: {}}});
-    }
 
     // Get selected group
     $scope.selectedGroup = [];
-    var groupSync = $firebase(fireRef.child('users/' + $rootScope.userToken.uid + '/groups'));
-    $scope.selectedGroupList = groupSync.$asArray();
+    $scope.selectedGroupList = $firebase(fireRef.child('users/' + $rootScope.userToken.uid + '/groups')).$asArray();
+
     $scope.$watch('selectedGroupList.length', function() {
         for (var i = 0; i < $scope.selectedGroupList.length; i++) {
             $scope.selectedGroup.push($scope.selectedGroupList[i].$id);
@@ -40,10 +36,11 @@ var SettingCtrl = function ($rootScope, $scope, $state, $cookieStore, $firebase)
 
     $scope.submitSetting = function() {
         $scope.profile.groups = {};
-
+        debugger;
         for (var i = 0; i < $scope.selectedGroup.length; i++) {
-            $scope.profile.groups[$scope.selectedGroup[i]] = {enabled: true};
+            $scope.profile.groups[$scope.selectedGroup[i]] = {join: new Date()};
         }
+
 
         $state.go('main');
     }

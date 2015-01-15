@@ -16,6 +16,18 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     $scope.dayList = [];
     $scope.showList = [];
 
+    if (angular.isUndefined($rootScope.selectedGroupUser)) {
+        $scope.selectedGroupUser = [];
+    } else {
+        $scope.selectedGroupUser = $rootScope.selectedGroupUser;
+        for (var item in $scope.selectedGroupUser) {
+
+        }
+    }
+    debugger;
+
+    $scope.event = $rootScope.event;
+
     var fireRef = new Firebase($rootScope.firebaseUrl);
     var sync = $firebase(fireRef.child('event').orderByChild('from'));
 
@@ -121,7 +133,12 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         });
 
         $state.go('eventList');
-    };
+    }
+
+    $scope.goLookup = function() {
+        $rootScope.event = $scope.event;
+        $state.go('eventShare');
+    }
 
     // Init date picker
     $('#eventDate').datetimepicker({
