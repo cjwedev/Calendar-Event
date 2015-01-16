@@ -7,7 +7,14 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         $state.go('signin');
     }
     $scope.profile = $cookieStore.get('profile');
-    console.log($scope.profile);
+    if (angular.isUndefined($scope.profile)) {
+        $state.go('signin');
+    }
+
+    $scope.userGroups = []; // Group array user involved
+    for (var item in $scope.profile.groups) {
+        $scope.userGroups.push(item);
+    }
 
     // Initialize the variables for year, month, week, day event list
     $scope.yearList = [];
@@ -33,7 +40,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     }
 
     var fireRef = new Firebase($rootScope.firebaseUrl);
-    var sync = $firebase(fireRef.child('event').orderByChild('from'));
+    var sync = $firebase(fireRef.child('events').orderByChild('from'));
     $scope.eventList = sync.$asArray();
 
     if (angular.isUndefined(sync)) {
@@ -43,6 +50,36 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     $scope.$watch('eventList.length', function(){
         for (var i = 0; i < $scope.eventList.length; i++) {
             var event = $scope.eventList[i];
+
+            // Check group
+            var involved = false;
+            for (var item in event.group) {
+                if ($scope.userGroups.indexOf(item) > -1) {
+                    for (var usr in event.group[item]) {
+                        if (usr == $scope.profile.uid) {
+                            involved = true;
+                            break;
+                        }
+                    }
+
+                    if (involved) break;
+                }
+            }
+
+            if (!involved) continue;
+            var membersCount = 0;
+            for (var item in event.group) {
+                if ($scope.userGroups.indexOf(item) > -1) {
+                    for (var usr in event.group[item]) {
+                        if (usr == $scope.profile.uid) {
+                            involved = true;
+                            break;
+                        }
+                    }
+
+                    if (involved) break;
+                }
+            }
 
             var current_date = new Date();
             var event_start_time = new Date(event.from);
@@ -68,6 +105,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
                     }
                 }
             }
+            $scope.showEventList('year');
         }
     });
 
@@ -129,18 +167,23 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
 
         var group = {}
         for (var item in $scope.selectedGroupUser) {
-            group[item] =
+            group[item] = {};
+            for (var i = 0; i < $scope.selectedGroupUser[item].members.length; i++) {
+                group[item][$scope.selectedGroupUser[item].members[i]] = true;
+            }
         }
-
+        debugger;
         $scope.eventList.$add({
             title       : $scope.event.title,
             from        : $filter('date')(date_from_tmp, 'yyyy/MM/dd HH:mm'),
             to          : $filter('date')(date_to_tmp, 'yyyy/MM/dd HH:mm'),
             group       : group,
             address     : $scope.event.address,
-            created_by  : $scope.profile.profile.uid
+            created_by  : $scope.profile.uid
         });
 
+        $scope.event = {}
+        $scope.selectedGroupUser = {};
         $state.go('eventList');
     }
 

@@ -3,7 +3,6 @@
 var ShareCtrl = function ($rootScope, $scope, $state, $cookieStore, $firebase) {
     // If not logged in, redirect to the login page
     if (angular.isUndefined($cookieStore.get('user')) || $cookieStore.get('user') === null) {
-        debugger;
         $state.go('signin');
     }
     $scope.eventTitle = $rootScope.event.title;
@@ -23,7 +22,6 @@ var ShareCtrl = function ($rootScope, $scope, $state, $cookieStore, $firebase) {
     for (var item in $scope.selectedGroupUser) {
         $scope.selectedGroup.push(item);
     }
-    debugger;
 
     // Store the selected groups' Id
     $scope.toggleGroupSelection = function(groupId) {
