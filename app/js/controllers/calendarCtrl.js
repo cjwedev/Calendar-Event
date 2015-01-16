@@ -16,26 +16,30 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     $scope.dayList = [];
     $scope.showList = [];
 
+    if (angular.isUndefined($rootScope.event))
+        $scope.event = {};
+    else
+        $scope.event = $rootScope.event;
+
     if (angular.isUndefined($rootScope.selectedGroupUser)) {
-        $scope.selectedGroupUser = [];
+        $scope.selectedGroupUser = {};
     } else {
         $scope.selectedGroupUser = $rootScope.selectedGroupUser;
+        $scope.event.group = "";
         for (var item in $scope.selectedGroupUser) {
-
+            $scope.event.group += $scope.selectedGroupUser[item].groupName;
+            $scope.event.group += "(" + $scope.selectedGroupUser[item].members.length + ") ";
         }
     }
-    debugger;
-
-    $scope.event = $rootScope.event;
 
     var fireRef = new Firebase($rootScope.firebaseUrl);
     var sync = $firebase(fireRef.child('event').orderByChild('from'));
+    $scope.eventList = sync.$asArray();
 
     if (angular.isUndefined(sync)) {
         fireRef.set({ event: {} });
     }
 
-    $scope.eventList = sync.$asArray();
     $scope.$watch('eventList.length', function(){
         for (var i = 0; i < $scope.eventList.length; i++) {
             var event = $scope.eventList[i];
@@ -123,11 +127,16 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         var date_from_tmp = new Date(Date.parse($scope.event.eventDate + " " + $scope.event.eventFrom));
         var date_to_tmp = new Date(Date.parse($scope.event.eventDate + " " + $scope.event.eventTo));
 
+        var group = {}
+        for (var item in $scope.selectedGroupUser) {
+            group[item] =
+        }
+
         $scope.eventList.$add({
             title       : $scope.event.title,
             from        : $filter('date')(date_from_tmp, 'yyyy/MM/dd HH:mm'),
             to          : $filter('date')(date_to_tmp, 'yyyy/MM/dd HH:mm'),
-            group       : $scope.event.group,
+            group       : group,
             address     : $scope.event.address,
             created_by  : $scope.profile.profile.uid
         });

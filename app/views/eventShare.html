@@ -34,26 +34,30 @@
         </div>
     </div>
 
-    <div class="col-xs-12" ng-repeat="group in showGroupList" style="padding-top:10px;">
+    <div class="col-xs-12" ng-repeat="group in groupList" style="padding-top:10px;">
         <div class="event-list-section">
             <div class="event-individual">
-                <div class="col-xs-10 group-title">{{ group.name }} ({{ groupUserList[group.id].length }})</div>
+                <div class="col-xs-10 group-title">
+                    {{ group.details.groupName }}
+                    <span ng-show="!selectedGroupUser[group.$id].members.length > 0">(0)</span>
+                    <span ng-show="selectedGroupUser[group.$id].members.length > 0">({{ selectedGroupUser[group.$id].members.length }})</span>
+                </div>
                 <div class="col-xs-2">
                     <input
                         type="checkbox"
-                        ng-checked="selectedGroup.indexOf(group.id) > -1"
-                        ng-click="toggleGroupSelection(group.id)"
+                        ng-checked="selectedGroup.indexOf(group.$id) > -1"
+                        ng-click="toggleGroupSelection(group.$id)"
                     >
                 </div>
             </div>
-            <div class="event-individual" ng-repeat="user in groupUserList[group.id]">
-                <div class="col-xs-10 subtitle">{{ user.firstName }} {{user.lastName}}</div>
+            <div class="event-individual" ng-repeat="(key, value) in group.members">
+                <div class="col-xs-10 subtitle">{{ usersObj[key].profile.first_name }} {{ usersObj[key].profile.last_name }}</div>
                 <div class="col-xs-2">
                     <input
-                            type="checkbox"
-                            ng-checked="selectedUser.indexOf(user.id) > -1"
-                            ng-click="toggleUserSelection(group.id, user.id)"
-                            >
+                        type="checkbox"
+                        ng-checked="!angular.isUndefined(selectedGroupUser[group.$id]) && selectedGroupUser[group.$id].members.indexOf(key) > -1"
+                        ng-click="toggleUserSelection(group.$id, key)"
+                    >
                 </div>
             </div>
         </div>
