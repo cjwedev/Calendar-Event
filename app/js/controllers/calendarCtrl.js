@@ -11,9 +11,18 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         $state.go('signin');
     }
 
-    $scope.userGroups = []; // Group array user involved
+    var fireRef = new Firebase($rootScope.firebaseUrl);
+    var sync = $firebase(fireRef.child('events').orderByChild('from'));
+    $scope.eventList = sync.$asArray();
+
+    // Group array user involved
+    $scope.userGroups = [];
     for (var item in $scope.profile.groups) {
         $scope.userGroups.push(item);
+    }
+
+    if (angular.isUndefined(sync)) {
+        fireRef.set({ events: {} });
     }
 
     // Initialize the variables for year, month, week, day event list
@@ -23,31 +32,77 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     $scope.dayList = [];
     $scope.showList = [];
 
-    if (angular.isUndefined($rootScope.event))
-        $scope.event = {};
-    else
-        $scope.event = $rootScope.event;
-
-    if (angular.isUndefined($rootScope.selectedGroupUser)) {
-        $scope.selectedGroupUser = {};
-    } else {
-        $scope.selectedGroupUser = $rootScope.selectedGroupUser;
-        $scope.event.group = "";
-        for (var item in $scope.selectedGroupUser) {
-            $scope.event.group += $scope.selectedGroupUser[item].groupName;
-            $scope.event.group += "(" + $scope.selectedGroupUser[item].members.length + ") ";
-        }
+    /* Initialize event detail page variables
+     * Selected event is in rootscope from list page */
+    $scope.initDetailPage = function() {
+        $scope.eventList = [];
+        $scope.detailEvent = $rootScope.detailEvent;
+        $scope.detailEvent.eventDateTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'EEE, MMM d yyyy');
+        $scope.detailEvent.eventTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'hh:mm a');
+        $scope.detailEvent.eventTimeTo = $filter('date')(new Date($scope.detailEvent.to), 'hh:mm a');
     }
 
-    var fireRef = new Firebase($rootScope.firebaseUrl);
-    var sync = $firebase(fireRef.child('events').orderByChild('from'));
-    $scope.eventList = sync.$asArray();
+    /* Initialize event list page variables */
+    $scope.initListPage = function() {
+    }
 
-    if (angular.isUndefined(sync)) {
-        fireRef.set({ event: {} });
+    /* Initialize event create page variables */
+    $scope.initCreatePage = function() {
+        // This $scope.event is shared by event create and share page for sharing event data
+        if (angular.isUndefined($rootScope.event))
+            $scope.event = {};
+        else
+            $scope.event = $rootScope.event;
+
+        // selectedGroupUser stores group and members involved to the group
+        // it is shared by create and share page together
+        if (angular.isUndefined($rootScope.selectedGroupUser)) {
+            $scope.selectedGroupUser = {};
+        } else {
+            $scope.selectedGroupUser = $rootScope.selectedGroupUser;
+            $scope.event.group = "";
+            for (var item in $scope.selectedGroupUser) {
+                $scope.event.group += $scope.selectedGroupUser[item].groupName;
+                $scope.event.group += "(" + $scope.selectedGroupUser[item].members.length + ") ";
+            }
+        }
+
+        // Init date picker
+        $('#eventDate').datetimepicker({
+            timepicker: false,
+            format: 'D, M j, Y',
+            closeOnDateSelect: true,
+            defaultDate: new Date(),
+            onChangeDateTime:function(dp, $input){
+                $scope.event.eventDate = $input.val();
+            }
+        });
+
+        // Init From-To time picker
+        $('#eventFrom').datetimepicker({
+            datepicker: false,
+            closeOnDateSelect: true,
+            format: 'h:i a',
+            step: 30,
+            onChangeDateTime:function(dp, $input){
+                $scope.event.eventFrom = $input.val();
+            }
+        });
+        $('#eventTo').datetimepicker({
+            datepicker: false,
+            closeOnDateSelect: true,
+            format: 'h:i a',
+            step: 30,
+            onChangeDateTime:function(dp, $input){
+                $scope.event.eventTo = $input.val();
+            }
+        });
     }
 
     $scope.$watch('eventList.length', function(){
+        if (angular.isUndefined($scope.eventList))
+            return;
+
         for (var i = 0; i < $scope.eventList.length; i++) {
             var event = $scope.eventList[i];
 
@@ -187,6 +242,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
 
     $scope.goLookup = function() {
         $rootScope.event = $scope.event;
+        $rootScope.selectedGroupUser = $scope.selectedGroupUser;
         $state.go('eventShare');
     }
 
@@ -194,43 +250,4 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         $rootScope.detailEvent = event;
         $state.go('eventDetail');
     }
-
-    $scope.initDetailPage = function() {
-        $scope.detailEvent = $rootScope.detailEvent;
-        $scope.detailEvent.eventDateTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'EEE, MMM d yyyy');
-        $scope.detailEvent.eventTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'hh:mm a');
-        $scope.detailEvent.eventTimeTo = $filter('date')(new Date($scope.detailEvent.to), 'hh:mm a');
-    }
-
-    // Init date picker
-    $('#eventDate').datetimepicker({
-        timepicker: false,
-        format: 'D, M j, Y',
-        closeOnDateSelect: true,
-        defaultDate: new Date(),
-        onChangeDateTime:function(dp, $input){
-            $scope.event.eventDate = $input.val();
-        }
-    });
-
-    // Init From-To time picker
-    $('#eventFrom').datetimepicker({
-        datepicker: false,
-        closeOnDateSelect: true,
-        format: 'h:i a',
-        step: 30,
-        onChangeDateTime:function(dp, $input){
-            $scope.event.eventFrom = $input.val();
-        }
-    });
-    $('#eventTo').datetimepicker({
-        datepicker: false,
-        closeOnDateSelect: true,
-        format: 'h:i a',
-        step: 30,
-        onChangeDateTime:function(dp, $input){
-            $scope.event.eventTo = $input.val();
-        }
-    });
-
 };

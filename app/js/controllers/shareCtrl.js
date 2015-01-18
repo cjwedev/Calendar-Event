@@ -5,22 +5,26 @@ var ShareCtrl = function ($rootScope, $scope, $state, $cookieStore, $firebase) {
     if (angular.isUndefined($cookieStore.get('user')) || $cookieStore.get('user') === null) {
         $state.go('signin');
     }
-    $scope.eventTitle = $rootScope.event.title;
 
     var fireRef = new Firebase($rootScope.firebaseUrl);
-    $scope.groupList = $firebase(fireRef.child('groups')).$asArray();
-    $scope.usersObj = $firebase(fireRef.child('users')).$asObject();
 
-    /* Initialize scope variables */
-    // Selected group checkboxes (groupId)
-    if (angular.isUndefined($scope.selectedGroupUser)) {
-        $scope.selectedGroupUser = {};  // Selected users by group
-    } else {
-        $scope.selectedGroupUser = $rootScope.selectedGroupUser;  // Selected users by group {groupId : [userId Array]}
-    }
-    $scope.selectedGroup = [];
-    for (var item in $scope.selectedGroupUser) {
-        $scope.selectedGroup.push(item);
+    $scope.initSharePage = function() {
+        $scope.groupList = $firebase(fireRef.child('groups')).$asArray();
+        $scope.usersObj = $firebase(fireRef.child('users')).$asObject();
+
+        $scope.eventTitle = $rootScope.event.title;
+
+        /* Initialize scope variables */
+        // Selected group checkboxes (groupId)
+        if (angular.isUndefined($rootScope.selectedGroupUser)) {
+            $scope.selectedGroupUser = {};  // Selected users by group
+        } else {
+            $scope.selectedGroupUser = $rootScope.selectedGroupUser;  // Selected users by group {groupId : [userId Array]}
+        }
+        $scope.selectedGroup = [];
+        for (var item in $scope.selectedGroupUser) {
+            $scope.selectedGroup.push(item);
+        }
     }
 
     // Store the selected groups' Id
