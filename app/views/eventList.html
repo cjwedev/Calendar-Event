@@ -50,11 +50,11 @@
             {{ day_list["date"] }}
         </div>
         <div class="event-list-section">
-            <div class="event-individual" ng-repeat="event in day_list['array']">
+            <div class="event-individual" ng-repeat="event in day_list['array']" ng-click="showDetails(event)">
                 <div class="col-xs-3 text-center event-time">{{ event.time }}</div>
                 <div class="col-xs-6">
                     <div class="event-title">{{ event.title }}</div>
-                    <div>2 Members</div>
+                    <div>{{ event.members }} members</div>
                 </div>
                 <div class="col-xs-3 text-right event-alert"><span class="circle"></span></div>
             </div>

@@ -51,7 +51,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         for (var i = 0; i < $scope.eventList.length; i++) {
             var event = $scope.eventList[i];
 
-            // Check group
+            // selected events with current user's group
             var involved = false;
             for (var item in event.group) {
                 if ($scope.userGroups.indexOf(item) > -1) {
@@ -67,19 +67,17 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             }
 
             if (!involved) continue;
+
+            // Calculate members count involved in the group event
             var membersCount = 0;
             for (var item in event.group) {
                 if ($scope.userGroups.indexOf(item) > -1) {
                     for (var usr in event.group[item]) {
-                        if (usr == $scope.profile.uid) {
-                            involved = true;
-                            break;
-                        }
+                        membersCount++;
                     }
-
-                    if (involved) break;
                 }
             }
+            event.members = membersCount;
 
             var current_date = new Date();
             var event_start_time = new Date(event.from);
@@ -172,7 +170,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
                 group[item][$scope.selectedGroupUser[item].members[i]] = true;
             }
         }
-        debugger;
+
         $scope.eventList.$add({
             title       : $scope.event.title,
             from        : $filter('date')(date_from_tmp, 'yyyy/MM/dd HH:mm'),
@@ -190,6 +188,18 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     $scope.goLookup = function() {
         $rootScope.event = $scope.event;
         $state.go('eventShare');
+    }
+
+    $scope.showDetails = function(event) {
+        $rootScope.detailEvent = event;
+        $state.go('eventDetail');
+    }
+
+    $scope.initDetailPage = function() {
+        $scope.detailEvent = $rootScope.detailEvent;
+        $scope.detailEvent.eventDateTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'EEE, MMM d yyyy');
+        $scope.detailEvent.eventTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'hh:mm a');
+        $scope.detailEvent.eventTimeTo = $filter('date')(new Date($scope.detailEvent.to), 'hh:mm a');
     }
 
     // Init date picker

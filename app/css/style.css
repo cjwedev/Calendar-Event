@@ -48,6 +48,11 @@
     display: flex;
 }
 
+.event-individual:hover {
+    cursor: pointer;
+    background-color: #c9e3ff;
+}
+
 .event-title {
     font-size:20px;
 }

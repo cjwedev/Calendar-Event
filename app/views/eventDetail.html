@@ -1,10 +1,31 @@
-<!DOCTYPE html>
-<html>
-<head lang="en">
-    <meta charset="UTF-8">
-    <title></title>
-</head>
-<body>
-
-</body>
-</html>
+<div ng-init="initDetailPage()">
+<div id="container" class="container container-top">
+    <div>
+        <div class="col-xs-4 text-left">
+            <ul class="pager mb10">
+                <li class="previous"><a href="#/event-list">Back</a></li>
+            </ul>
+        </div>
+        <div class="col-xs-4 text-center">
+            <h3 class="text-center">Event</h3>
+        </div>
+        <div class="col-xs-4 text-right">
+            <ul class="pager mb10">
+                <li class="next"><a href="#/event-list">Edit</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div>
+    <hr class="hr-margin" />
+</div>
+<div class="container">
+    <div>
+        <p><h3>{{ detailEvent.title }}</h3></p>
+        <p><h4>{{ detailEvent.eventDateTimeFrom }}</h4></p>
+        <p><h4>{{ detailEvent.eventTimeFrom }} - {{ detailEvent.eventTimeTo }}</h4></p>
+        <p>{{ detailEvent.members }} members</p>
+        <p>{{ detailEvent.address }}</p>
+    </div>
+</div>
+</div>

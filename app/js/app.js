@@ -42,7 +42,8 @@ app.config(function ($stateProvider, $httpProvider, $locationProvider, $urlRoute
         })
         .state('eventDetail', {
             url: '/event-detail',
-            templateUrl: 'views/eventDetail.html'
+            templateUrl: 'views/eventDetail.html',
+            controller: CalendarCtrl
         })
         .state('eventShare', {
             url: '/event-share/',
