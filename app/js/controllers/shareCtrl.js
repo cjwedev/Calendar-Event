@@ -1,6 +1,6 @@
 'use strict'
 
-var ShareCtrl = function ($rootScope, $scope, $state, $cookieStore, $firebase) {
+var ShareCtrl = function ($rootScope, $scope, $state, $cookieStore, $stateParams, $firebase) {
     // If not logged in, redirect to the login page
     if (angular.isUndefined($cookieStore.get('user')) || $cookieStore.get('user') === null) {
         $state.go('signin');
@@ -123,6 +123,6 @@ var ShareCtrl = function ($rootScope, $scope, $state, $cookieStore, $firebase) {
     $scope.done = function() {
         $rootScope.selectedGroupUser = $scope.selectedGroupUser;
 
-        $state.go('eventCreate');
+        $state.go('eventCreate', {groupId: $stateParams.groupId});
     }
 }

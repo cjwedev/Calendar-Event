@@ -1,7 +1,7 @@
 
 'use strict';
 
-var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, $firebase) {
+var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, $stateParams, $firebase) {
     // If not logged in, redirect to the login page
     if (angular.isUndefined($cookieStore.get('user')) || $cookieStore.get('user') === null) {
         $state.go('signin');
@@ -12,30 +12,10 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     }
 
     var fireRef = new Firebase($rootScope.firebaseUrl);
-    var sync = $firebase(fireRef.child('events').orderByChild('from'));
-    $scope.eventList = sync.$asArray();
-
-    // Group array user involved
-    $scope.userGroups = [];
-    for (var item in $scope.profile.groups) {
-        $scope.userGroups.push(item);
-    }
-
-    if (angular.isUndefined(sync)) {
-        fireRef.set({ events: {} });
-    }
-
-    // Initialize the variables for year, month, week, day event list
-    $scope.yearList = [];
-    $scope.monthList = [];
-    $scope.weekList = [];
-    $scope.dayList = [];
-    $scope.showList = [];
 
     /* Initialize event detail page variables
      * Selected event is in rootscope from list page */
     $scope.initDetailPage = function() {
-        $scope.eventList = [];
         $scope.detailEvent = $rootScope.detailEvent;
         $scope.detailEvent.eventDateTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'EEE, MMM d yyyy');
         $scope.detailEvent.eventTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'hh:mm a');
@@ -44,26 +24,74 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
 
     /* Initialize event list page variables */
     $scope.initListPage = function() {
+        var sync = $firebase(fireRef.child('events').orderByChild('from'));
+        $scope.eventList = sync.$asArray();
+
+        // Group array user involved
+        $scope.userGroups = [];
+        for (var item in $scope.profile.groups) {
+            $scope.userGroups.push(item);
+        }
+
+        if (angular.isUndefined(sync)) {
+            fireRef.set({ events: {} });
+        }
+
+        // Initialize the variables for year, month, week, day event list
+        $scope.yearList = [];
+        $scope.monthList = [];
+        $scope.weekList = [];
+        $scope.dayList = [];
+        $scope.showList = [];
+    }
+
+    function getGroupUserFrom(selectedGroupUser) {
+        var group = "";
+        for (var item in selectedGroupUser) {
+            group += selectedGroupUser[item].groupName;
+            group += "(" + selectedGroupUser[item].members.length + ") ";
+        }
+
+        return group;
     }
 
     /* Initialize event create page variables */
     $scope.initCreatePage = function() {
-        // This $scope.event is shared by event create and share page for sharing event data
-        if (angular.isUndefined($rootScope.event))
-            $scope.event = {};
-        else
-            $scope.event = $rootScope.event;
+        if (angular.isUndefined($stateParams.groupId)){ // event create page
+            var sync = $firebase(fireRef.child('events'));
+            $scope.eventListSync = sync.$asArray();
 
-        // selectedGroupUser stores group and members involved to the group
-        // it is shared by create and share page together
-        if (angular.isUndefined($rootScope.selectedGroupUser)) {
-            $scope.selectedGroupUser = {};
-        } else {
-            $scope.selectedGroupUser = $rootScope.selectedGroupUser;
-            $scope.event.group = "";
-            for (var item in $scope.selectedGroupUser) {
-                $scope.event.group += $scope.selectedGroupUser[item].groupName;
-                $scope.event.group += "(" + $scope.selectedGroupUser[item].members.length + ") ";
+            $scope.edit = false;
+
+            // This $scope.event is shared by event create and share page for sharing event data
+            if (angular.isUndefined($rootScope.event))
+                $scope.event = {};
+            else
+                $scope.event = $rootScope.event;
+
+            // selectedGroupUser stores group and members involved to the group
+            // it is shared by create and share page together
+            if (angular.isUndefined($rootScope.selectedGroupUser)) {
+                $scope.selectedGroupUser = {};
+            } else {
+                $scope.selectedGroupUser = $rootScope.selectedGroupUser;
+                $scope.event.group = getGroupUserFrom($scope.selectedGroupUser);
+                //for (var item in $scope.selectedGroupUser) {
+                //    $scope.event.group += $scope.selectedGroupUser[item].groupName;
+                //    $scope.event.group += "(" + $scope.selectedGroupUser[item].members.length + ") ";
+                //}
+            }
+        } else { // event edit page
+            $scope.groupListSync = $firebase(fireRef.child('groups')).$asArray();
+            $scope.eventSync = $firebase(fireRef.child('events').child($stateParams.groupId)).$asObject();
+
+            $scope.edit = true;
+            $scope.event = {};
+
+            // selectedGroupUser stores group and members involved to the group
+            // it is shared by create and share page together
+            if (!angular.isUndefined($rootScope.selectedGroupUser)) {
+                $scope.selectedGroupUser = $rootScope.selectedGroupUser;
             }
         }
 
@@ -98,6 +126,35 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             }
         });
     }
+
+    $scope.$watch('eventSync.title', function(oldVal, newVal) {
+        if (oldVal == newVal) return;
+        debugger;
+        if (angular.isUndefined($scope.selectedGroupUser)) {
+            $scope.selectedGroupUser = {};
+            for (var gr in $scope.eventSync.group) {
+                $scope.selectedGroupUser[gr] = {};
+                for (var i = 0; i < $scope.groupListSync.length; i++) {
+                    if ($scope.groupListSync[i].$id == gr) {
+                        $scope.selectedGroupUser[gr].groupName = $scope.groupListSync[i].details.groupName;
+                        break;
+                    }
+                }
+                $scope.selectedGroupUser[gr].members = [];
+                for (var usr in $scope.eventSync.group[gr]) {
+                    $scope.selectedGroupUser[gr].members.push(usr);
+                }
+            }
+        }
+
+        $scope.event.id = $scope.eventSync.$id;
+        $scope.event.title = $scope.eventSync.title;
+        $scope.event.address = $scope.eventSync.address;
+        $scope.event.eventDate = $filter('date')(new Date($scope.eventSync.from), 'EEE, MMM d yyyy');
+        $scope.event.eventFrom = $filter('date')(new Date($scope.eventSync.from), 'hh:mm a');
+        $scope.event.eventTo = $filter('date')(new Date($scope.eventSync.to), 'hh:mm a');
+        $scope.event.group = getGroupUserFrom($scope.selectedGroupUser);
+    })
 
     $scope.$watch('eventList.length', function(){
         if (angular.isUndefined($scope.eventList))
@@ -218,7 +275,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         var date_from_tmp = new Date(Date.parse($scope.event.eventDate + " " + $scope.event.eventFrom));
         var date_to_tmp = new Date(Date.parse($scope.event.eventDate + " " + $scope.event.eventTo));
 
-        var group = {}
+        var group = {};
         for (var item in $scope.selectedGroupUser) {
             group[item] = {};
             for (var i = 0; i < $scope.selectedGroupUser[item].members.length; i++) {
@@ -226,7 +283,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             }
         }
 
-        $scope.eventList.$add({
+        $scope.eventListSync.$add({
             title       : $scope.event.title,
             from        : $filter('date')(date_from_tmp, 'yyyy/MM/dd HH:mm'),
             to          : $filter('date')(date_to_tmp, 'yyyy/MM/dd HH:mm'),
@@ -235,7 +292,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             created_by  : $scope.profile.uid
         });
 
-        $scope.event = {}
+        $scope.event = {};
         $scope.selectedGroupUser = {};
         $state.go('eventList');
     }
@@ -243,11 +300,15 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     $scope.goLookup = function() {
         $rootScope.event = $scope.event;
         $rootScope.selectedGroupUser = $scope.selectedGroupUser;
-        $state.go('eventShare');
+        $state.go('eventShare', {groupId: $stateParams.groupId});
     }
 
     $scope.showDetails = function(event) {
         $rootScope.detailEvent = event;
         $state.go('eventDetail');
+    }
+
+    $scope.goEditPage = function () {
+        $state.go('eventCreate', {groupId: $scope.detailEvent.$id});
     }
 };
