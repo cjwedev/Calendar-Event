@@ -327,6 +327,14 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         }
     }
 
+    $scope.deleteEvent = function() {
+        var delete_confirm = confirm("Do you want to remove this event?");
+        if (delete_confirm) {
+            $firebase(fireRef.child('events')).$remove($scope.eventSync.$id);
+            $state.go('eventList');
+        }
+    }
+
     $scope.goLookup = function() {
         $rootScope.event = $scope.event;
         $rootScope.selectedGroupUser = $scope.selectedGroupUser;

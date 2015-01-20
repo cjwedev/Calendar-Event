@@ -67,8 +67,12 @@
             </div>
             <br />
             <div ng-show="edit">
-                <button type="submit" class="btn btn-primary btn-block" ng-click="createEvent(true)"
-                        ng-disabled="myForm.title.$dirty && myForm.title.$invalid">Update</button>
+                <div class="col-xs-6">
+                    <button class="btn btn-primary btn-block" ng-click="createEvent(true)">Update</button>
+                </div>
+                <div class="col-xs-6">
+                    <button class="btn btn-primary btn-block" ng-click="deleteEvent()">Delete</button>
+                </div>
             </div>
             <div ng-show="! edit">
             <button type="submit" class="btn btn-primary btn-block" ng-click="createEvent(false)"
