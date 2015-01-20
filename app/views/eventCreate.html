@@ -3,16 +3,16 @@
     <div>
         <div class="col-xs-4 text-left">
             <ul class="pager mb10">
-                <li class="previous"><a href="#/event-list">Back</a></li>
+                <li class="previous">
+                    <a href="#/event-list" ng-show="!eventId">Back</a>
+                    <a href="#/event-detail?eventId={{eventId}}" ng-show="eventId">Back</a>
+                </li>
             </ul>
         </div>
         <div class="col-xs-4 text-center">
             <h3 class="text-center">Event</h3>
         </div>
         <div class="col-xs-4 text-right">
-            <ul class="pager mb10">
-                <li class="next"><a href="#/event-list">Cancel</a></li>
-            </ul>
         </div>
     </div>
 </div>
@@ -27,7 +27,7 @@
                     <label class="control-label">
                         Event Title
                     </label>
-                    <div ng-show="myForm.title.$invalid" style="float:right; color: #ff7160">
+                    <div ng-show="myForm.title.$dirty && myForm.title.$invalid" style="float:right; color: #ff7160">
                         Required
                     </div>
                 </div>
@@ -67,11 +67,11 @@
             </div>
             <br />
             <div ng-show="edit">
-                <button type="submit" class="btn btn-primary btn-block" ng-click="createEvent()"
+                <button type="submit" class="btn btn-primary btn-block" ng-click="createEvent(true)"
                         ng-disabled="myForm.title.$dirty && myForm.title.$invalid">Update</button>
             </div>
             <div ng-show="! edit">
-            <button type="submit" class="btn btn-primary btn-block" ng-click="createEvent()"
+            <button type="submit" class="btn btn-primary btn-block" ng-click="createEvent(false)"
                     ng-disabled="myForm.title.$dirty && myForm.title.$invalid">Add</button>
             </div>
         </form>

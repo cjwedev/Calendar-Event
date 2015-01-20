@@ -36,22 +36,17 @@ app.config(function ($stateProvider, $httpProvider, $locationProvider, $urlRoute
             controller: CalendarCtrl
         })
         .state('eventCreate', {
-            url: '/event-create?groupId',
+            url: '/event-create?eventId',
             templateUrl: 'views/eventCreate.html',
             controller: CalendarCtrl
         })
         .state('eventDetail', {
-            url: '/event-detail',
+            url: '/event-detail?eventId',
             templateUrl: 'views/eventDetail.html',
             controller: CalendarCtrl
         })
-        .state('eventEdit', {
-            url: '/event-edit',
-            templateUrl: 'views/eventEdit.html',
-            controller: CalendarCtrl
-        })
         .state('eventShare', {
-            url: '/event-share?groupId',
+            url: '/event-share?eventId',
             templateUrl: 'views/eventShare.html',
             controller: ShareCtrl
         })

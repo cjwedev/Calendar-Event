@@ -123,6 +123,6 @@ var ShareCtrl = function ($rootScope, $scope, $state, $cookieStore, $stateParams
     $scope.done = function() {
         $rootScope.selectedGroupUser = $scope.selectedGroupUser;
 
-        $state.go('eventCreate', {groupId: $stateParams.groupId});
+        $state.go('eventCreate', {eventId: $stateParams.eventId});
     }
 }

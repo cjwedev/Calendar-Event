@@ -16,10 +16,27 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     /* Initialize event detail page variables
      * Selected event is in rootscope from list page */
     $scope.initDetailPage = function() {
-        $scope.detailEvent = $rootScope.detailEvent;
-        $scope.detailEvent.eventDateTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'EEE, MMM d yyyy');
-        $scope.detailEvent.eventTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'hh:mm a');
-        $scope.detailEvent.eventTimeTo = $filter('date')(new Date($scope.detailEvent.to), 'hh:mm a');
+        $scope.detailEvent = $firebase(fireRef.child('events').child($stateParams.eventId)).$asObject();
+        $scope.isOwner = false;
+
+        $scope.$watch('detailEvent.title', function() {
+            $scope.detailEvent.eventDateTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'EEE, MMM d yyyy');
+            $scope.detailEvent.eventTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'hh:mm a');
+            $scope.detailEvent.eventTimeTo = $filter('date')(new Date($scope.detailEvent.to), 'hh:mm a');
+
+            // Calculate members count involved in the event
+            var membersCount = 0;
+            for (var item in $scope.detailEvent.group) {
+                for (var usr in $scope.detailEvent.group[item]) {
+                    membersCount++;
+                }
+            }
+            $scope.detailEvent.members = membersCount;
+
+            // Check if the current user is owner of this event
+            if ($scope.detailEvent.created_by == $scope.profile.uid)
+                $scope.isOwner = true;
+        })
     }
 
     /* Initialize event list page variables */
@@ -57,7 +74,8 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
 
     /* Initialize event create page variables */
     $scope.initCreatePage = function() {
-        if (angular.isUndefined($stateParams.groupId)){ // event create page
+        $scope.eventId = $stateParams.eventId;
+        if (angular.isUndefined($scope.eventId)){ // event create page
             var sync = $firebase(fireRef.child('events'));
             $scope.eventListSync = sync.$asArray();
 
@@ -82,8 +100,8 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
                 //}
             }
         } else { // event edit page
+            $scope.eventSync = $firebase(fireRef.child('events').child($scope.eventId)).$asObject();
             $scope.groupListSync = $firebase(fireRef.child('groups')).$asArray();
-            $scope.eventSync = $firebase(fireRef.child('events').child($stateParams.groupId)).$asObject();
 
             $scope.edit = true;
             $scope.event = {};
@@ -125,36 +143,37 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
                 $scope.event.eventTo = $input.val();
             }
         });
-    }
 
-    $scope.$watch('eventSync.title', function(oldVal, newVal) {
-        if (oldVal == newVal) return;
-        debugger;
-        if (angular.isUndefined($scope.selectedGroupUser)) {
-            $scope.selectedGroupUser = {};
-            for (var gr in $scope.eventSync.group) {
-                $scope.selectedGroupUser[gr] = {};
-                for (var i = 0; i < $scope.groupListSync.length; i++) {
-                    if ($scope.groupListSync[i].$id == gr) {
-                        $scope.selectedGroupUser[gr].groupName = $scope.groupListSync[i].details.groupName;
-                        break;
+        // Once group list is loaded, retrieves group list and members involved to this event
+        $scope.$watch('groupListSync.length', function(oldVal, newVal) {
+            if (oldVal == newVal) return;
+
+            if (angular.isUndefined($scope.selectedGroupUser)) {
+                $scope.selectedGroupUser = {};
+                for (var gr in $scope.eventSync.group) {
+                    $scope.selectedGroupUser[gr] = {};
+                    for (var i = 0; i < $scope.groupListSync.length; i++) {
+                        if ($scope.groupListSync[i].$id == gr) {
+                            $scope.selectedGroupUser[gr].groupName = $scope.groupListSync[i].details.groupName;
+                            break;
+                        }
+                    }
+                    $scope.selectedGroupUser[gr].members = [];
+                    for (var usr in $scope.eventSync.group[gr]) {
+                        $scope.selectedGroupUser[gr].members.push(usr);
                     }
                 }
-                $scope.selectedGroupUser[gr].members = [];
-                for (var usr in $scope.eventSync.group[gr]) {
-                    $scope.selectedGroupUser[gr].members.push(usr);
-                }
             }
-        }
 
-        $scope.event.id = $scope.eventSync.$id;
-        $scope.event.title = $scope.eventSync.title;
-        $scope.event.address = $scope.eventSync.address;
-        $scope.event.eventDate = $filter('date')(new Date($scope.eventSync.from), 'EEE, MMM d yyyy');
-        $scope.event.eventFrom = $filter('date')(new Date($scope.eventSync.from), 'hh:mm a');
-        $scope.event.eventTo = $filter('date')(new Date($scope.eventSync.to), 'hh:mm a');
-        $scope.event.group = getGroupUserFrom($scope.selectedGroupUser);
-    })
+            $scope.event.id = $scope.eventSync.$id;
+            $scope.event.title = $scope.eventSync.title;
+            $scope.event.address = $scope.eventSync.address;
+            $scope.event.eventDate = $filter('date')(new Date($scope.eventSync.from), 'EEE, MMM d yyyy');
+            $scope.event.eventFrom = $filter('date')(new Date($scope.eventSync.from), 'hh:mm a');
+            $scope.event.eventTo = $filter('date')(new Date($scope.eventSync.to), 'hh:mm a');
+            $scope.event.group = getGroupUserFrom($scope.selectedGroupUser);
+        })
+    }
 
     $scope.$watch('eventList.length', function(){
         if (angular.isUndefined($scope.eventList))
@@ -270,8 +289,9 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         console.log($scope.showList);
     }
 
-    $scope.createEvent = function() {
-        // Store the converted starndard datetime into Firebase
+    $scope.createEvent = function(isEdit) {
+
+        // convert datetime format
         var date_from_tmp = new Date(Date.parse($scope.event.eventDate + " " + $scope.event.eventFrom));
         var date_to_tmp = new Date(Date.parse($scope.event.eventDate + " " + $scope.event.eventTo));
 
@@ -283,32 +303,45 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             }
         }
 
-        $scope.eventListSync.$add({
-            title       : $scope.event.title,
-            from        : $filter('date')(date_from_tmp, 'yyyy/MM/dd HH:mm'),
-            to          : $filter('date')(date_to_tmp, 'yyyy/MM/dd HH:mm'),
-            group       : group,
-            address     : $scope.event.address,
-            created_by  : $scope.profile.uid
-        });
+        if (!isEdit) { // Create new event
+            $scope.eventListSync.$add({
+                title       : $scope.event.title,
+                from        : $filter('date')(date_from_tmp, 'yyyy/MM/dd HH:mm'),
+                to          : $filter('date')(date_to_tmp, 'yyyy/MM/dd HH:mm'),
+                group       : group,
+                address     : $scope.event.address,
+                created_by  : $scope.profile.uid
+            });
 
-        $scope.event = {};
-        $scope.selectedGroupUser = {};
-        $state.go('eventList');
+            $state.go('eventList');
+        } else { // Update current event
+            $scope.eventSync.title  = $scope.event.title;
+            $scope.eventSync.from   = $filter('date')(date_from_tmp, 'yyyy/MM/dd HH:mm');
+            $scope.eventSync.to     = $filter('date')(date_to_tmp, 'yyyy/MM/dd HH:mm');
+            $scope.eventSync.group  = group;
+            $scope.eventSync.address = $scope.event.address;
+
+            $scope.eventSync.$save();
+
+            $state.go('eventDetail', {eventId: $scope.eventId});
+        }
     }
 
     $scope.goLookup = function() {
         $rootScope.event = $scope.event;
         $rootScope.selectedGroupUser = $scope.selectedGroupUser;
-        $state.go('eventShare', {groupId: $stateParams.groupId});
+
+        if (angular.isUndefined($scope.eventId))
+            $state.go('eventShare');
+        else
+            $state.go('eventShare', {eventId: $scope.eventId});
     }
 
-    $scope.showDetails = function(event) {
-        $rootScope.detailEvent = event;
-        $state.go('eventDetail');
+    $scope.showDetails = function(eventId) {
+        $state.go('eventDetail', {eventId: eventId});
     }
 
     $scope.goEditPage = function () {
-        $state.go('eventCreate', {groupId: $scope.detailEvent.$id});
+        $state.go('eventCreate', {eventId: $stateParams.eventId});
     }
 };
