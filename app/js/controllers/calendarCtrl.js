@@ -312,7 +312,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
                 address     : $scope.event.address,
                 created_by  : $scope.profile.uid
             });
-
+            $rootScope.event = {};
             $state.go('eventList');
         } else { // Update current event
             $scope.eventSync.title  = $scope.event.title;
@@ -323,6 +323,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
 
             $scope.eventSync.$save();
 
+            $rootScope.even = {};
             $state.go('eventDetail', {eventId: $scope.eventId});
         }
     }
