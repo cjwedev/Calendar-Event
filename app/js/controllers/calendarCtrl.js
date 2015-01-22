@@ -60,6 +60,9 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         $scope.weekList = [];
         $scope.dayList = [];
         $scope.showList = [];
+
+        $rootScope.event = undefined;
+        $rootScope.selectedGroupUser = undefined;
     }
 
     function getGroupUserFrom(selectedGroupUser) {
@@ -99,6 +102,20 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
                 //    $scope.event.group += "(" + $scope.selectedGroupUser[item].members.length + ") ";
                 //}
             }
+
+            // Set current DateTime
+            var currentDateTime = new Date();
+            $scope.event.eventDate = $filter('date')(currentDateTime, 'EEE, MMM d yyyy');
+            $scope.event.eventFrom = $filter('date')(currentDateTime, 'hh:mm a');
+
+            var oneHourSpan = new Date(
+                currentDateTime.getYear(),
+                currentDateTime.getMonth(),
+                currentDateTime.getDay(),
+                currentDateTime.getHours() + 1,
+                currentDateTime.getMinutes(),
+                currentDateTime.getSeconds());
+            $scope.event.eventTo = $filter('date')(oneHourSpan, 'hh:mm a');
         } else { // event edit page
             $scope.eventSync = $firebase(fireRef.child('events').child($scope.eventId)).$asObject();
             $scope.groupListSync = $firebase(fireRef.child('groups')).$asArray();
