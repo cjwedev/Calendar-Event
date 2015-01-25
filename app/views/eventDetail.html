@@ -22,12 +22,54 @@
     <hr class="hr-margin" />
 </div>
 <div class="container">
-    <div ng-show="detailEvent.title">
-        <p><h3>{{ detailEvent.title }}</h3></p>
-        <p><h4>{{ detailEvent.eventDateTimeFrom }}</h4></p>
-        <p><h4>{{ detailEvent.eventTimeFrom }} - {{ detailEvent.eventTimeTo }}</h4></p>
-        <p>{{ detailEvent.members }} members</p>
-        <p>{{ detailEvent.address }}</p>
+    <div ng-show="detailEvent.title" class="detail-shadow">
+        <div>
+            <h3>{{ detailEvent.title }}</h3>
+            <h4>{{ detailEvent.eventDateTimeFrom }}</h4>
+            <h4>{{ detailEvent.eventTimeFrom }} - {{ detailEvent.eventTimeTo }}</h4>
+            <p>{{ detailEvent.address }}</p>
+            <br />
+        </div>
+        <div>
+            <div class="col-xs-6 text-center">Comments ({{ commentsSync.length }})</div>
+            <div class="col-xs-6 text-center">Members ({{ detailEvent.members }})</div>
+        </div>
+    </div>
+    <div class="comment-section">
+        <div class="comment-piece" ng-repeat="item in commentList">
+            <div ng-if="item.isSelf" class="col-xs-12">
+                <div class="col-xs-10">
+                    <div class="comment arrow-right">
+                        {{ item.comment }}
+                    </div>
+                    <div class="text-left" style="margin-bottom: 20px">{{item.commentDate}}</div>
+                </div>
+                <div class="col-xs-2 text-center" style="padding-left:0;">
+                    <img class="comment-avatar img-circle" src="./images/avatar.png">
+                    <div>{{item.firstName.first_name}}</div>
+                </div>
+            </div>
+
+            <div ng-if="!item.isSelf" class="col-xs-12">
+                <div class="col-xs-2 text-center">
+                    <img class="comment-avatar img-circle" src="./images/avatar.png">
+                    <div>{{item.firstName.first_name}}</div>
+                </div>
+                <div class="col-xs-10">
+                    <div class="comment arrow-left">
+                        {{ item.comment }}
+                    </div>
+                    <div class="text-right" style="margin-bottom: 20px">{{item.commentDate}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="clear: both"></div>
+    <div class="input-group" style="margin-top: 20px">
+        <input type="text" class="form-control" placeholder="Enter comment" maxlength="140" ng-model="comment">
+        <span class="input-group-btn">
+            <a class="btn btn-default" href="javascript:void(0);" ng-click="addComment()">Send</a>
+        </span>
     </div>
 </div>
 </div>

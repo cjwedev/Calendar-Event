@@ -16,9 +16,9 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     /* Initialize event detail page variables
      * Selected event is in rootscope from list page */
     $scope.initDetailPage = function() {
-        $scope.detailEvent = $firebase(fireRef.child('events').child($stateParams.eventId)).$asObject();
-        $scope.isOwner = false;
+        $scope.isOwner = false; // Check if current user is a creator of this event
 
+        $scope.detailEvent = $firebase(fireRef.child('events').child($stateParams.eventId)).$asObject();
         $scope.$watch('detailEvent.title', function() {
             $scope.detailEvent.eventDateTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'EEE, MMM d yyyy');
             $scope.detailEvent.eventTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'hh:mm a');
@@ -36,6 +36,28 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             // Check if the current user is owner of this event
             if ($scope.detailEvent.created_by == $scope.profile.uid)
                 $scope.isOwner = true;
+        })
+
+        // Initialize comment list
+        $scope.commentsSync = $firebase(fireRef.child('comments').child($stateParams.eventId).orderByChild('created_date')).$asArray();
+        $scope.$watch('commentsSync.length', function() {
+            if (angular.isUndefined($scope.commentsSync)) {
+                return;
+            }
+
+            $scope.commentList = $scope.commentsSync;
+            for (var i = 0; i < $scope.commentList.length; i++) {
+                if ($scope.profile.uid == $scope.commentList[i].created_by)
+                    $scope.commentList[i].isSelf = true;
+                else
+                    $scope.commentList[i].isSelf = false;
+
+                $scope.commentList[i].commentDate = $filter('date')(new Date($scope.commentList[i].created_date), 'EEE, MMM d yyyy, hh:mm a');
+
+                // Get first name
+                $scope.commentList[i].firstName =
+                    $firebase(fireRef.child('users').child($scope.commentList[i].created_by).child('profile')).$asObject();
+            }
         })
     }
 
@@ -372,5 +394,15 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
 
     $scope.goEditPage = function () {
         $state.go('eventCreate', {eventId: $stateParams.eventId});
+    }
+
+    $scope.addComment = function() {
+        $scope.commentsSync.$add({
+            comment: $scope.comment,
+            created_by: $scope.profile.uid,
+            created_date: $filter('date')(new Date(), 'yyyy/MM/dd HH:mm')
+        });
+
+        $scope.comment = "";
     }
 };
