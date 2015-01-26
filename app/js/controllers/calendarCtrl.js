@@ -373,7 +373,12 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     $scope.deleteEvent = function() {
         var delete_confirm = confirm("Do you want to remove this event?");
         if (delete_confirm) {
+            // Delete event
             $firebase(fireRef.child('events')).$remove($scope.eventSync.$id);
+
+            // Delete comments
+            $firebase(fireRef.child('comments')).$remove($scope.eventSync.$id);
+
             $state.go('eventList');
         }
     }
