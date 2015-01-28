@@ -25,13 +25,15 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             $scope.detailEvent.eventTimeTo = $filter('date')(new Date($scope.detailEvent.to), 'hh:mm a');
 
             // Calculate members count involved in the event
-            var membersCount = 0;
+            var memberList = [];
+            memberList.push($scope.detailEvent.created_by);
             for (var item in $scope.detailEvent.group) {
                 for (var usr in $scope.detailEvent.group[item]) {
-                    membersCount++;
+                    if (memberList.indexOf(usr) < 0)
+                        memberList.push(usr);
                 }
             }
-            $scope.detailEvent.members = membersCount;
+            $scope.detailEvent.members = memberList.length;
 
             // Check if the current user is owner of this event
             if ($scope.detailEvent.created_by == $scope.profile.uid)
@@ -223,31 +225,37 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
 
             // selected events with current user's group
             var involved = false;
-            for (var item in event.group) {
-                if ($scope.userGroups.indexOf(item) > -1) {
-                    for (var usr in event.group[item]) {
-                        if (usr == $scope.profile.uid) {
-                            involved = true;
-                            break;
+            var memberList = [];
+            memberList.push(event.created_by);
+            if ($scope.profile.uid == event.created_by) {
+                involved = true;
+            } else {
+                for (var item in event.group) {
+                    if ($scope.userGroups.indexOf(item) > -1) {
+                        for (var usr in event.group[item]) {
+                            if (usr == $scope.profile.uid) {
+                                involved = true;
+                                break;
+                            }
                         }
-                    }
 
-                    if (involved) break;
+                        if (involved) break;
+                    }
                 }
             }
 
             if (!involved) continue;
 
             // Calculate members count involved in the group event
-            var membersCount = 0;
             for (var item in event.group) {
                 if ($scope.userGroups.indexOf(item) > -1) {
                     for (var usr in event.group[item]) {
-                        membersCount++;
+                        if (memberList.indexOf(usr) < 0)
+                            memberList.push(usr);
                     }
                 }
             }
-            event.members = membersCount;
+            event.members = memberList.length;
 
             var current_date = new Date();
             var event_start_time = new Date(event.from);
@@ -329,7 +337,6 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     }
 
     $scope.createEvent = function(isEdit) {
-
         // convert datetime format
         var date_from_tmp = new Date(Date.parse($scope.event.eventDate + " " + $scope.event.eventFrom));
         var date_to_tmp = new Date(Date.parse($scope.event.eventDate + " " + $scope.event.eventTo));
@@ -341,6 +348,9 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
                 group[item][$scope.selectedGroupUser[item].members[i]] = true;
             }
         }
+
+        if (angular.isUndefined($scope.event.address))
+            $scope.event.address = '';
 
         if (!isEdit) { // Create new event
             $scope.eventListSync.$add({
@@ -402,6 +412,9 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     }
 
     $scope.addComment = function() {
+        if (angular.isUndefined($scope.comment))
+            return;
+
         $scope.commentsSync.$add({
             comment: $scope.comment,
             created_by: $scope.profile.uid,
