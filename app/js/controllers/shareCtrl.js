@@ -125,4 +125,8 @@ var ShareCtrl = function ($rootScope, $scope, $state, $cookieStore, $stateParams
 
         $state.go('eventCreate', {eventId: $stateParams.eventId});
     }
+
+    $scope.goEditPage = function () {
+        $state.go('eventCreate', {eventId: $stateParams.eventId});
+    }
 }
