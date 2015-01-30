@@ -109,8 +109,22 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             $scope.edit = false;
 
             // This $scope.event is shared by event create and share page for sharing event data
-            if (angular.isUndefined($rootScope.event))
+            if (angular.isUndefined($rootScope.event)) {
                 $scope.event = {};
+                // Set current DateTime
+                var currentDateTime = new Date();
+                $scope.event.eventDate = $filter('date')(currentDateTime, 'EEE, MMM d yyyy');
+                $scope.event.eventFrom = $filter('date')(currentDateTime, 'hh:mm a');
+
+                var oneHourSpan = new Date(
+                    currentDateTime.getYear(),
+                    currentDateTime.getMonth(),
+                    currentDateTime.getDay(),
+                    currentDateTime.getHours() + 1,
+                    currentDateTime.getMinutes(),
+                    currentDateTime.getSeconds());
+                $scope.event.eventTo = $filter('date')(oneHourSpan, 'hh:mm a');
+            }
             else
                 $scope.event = $rootScope.event;
 
@@ -126,20 +140,6 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
                 //    $scope.event.group += "(" + $scope.selectedGroupUser[item].members.length + ") ";
                 //}
             }
-
-            // Set current DateTime
-            var currentDateTime = new Date();
-            $scope.event.eventDate = $filter('date')(currentDateTime, 'EEE, MMM d yyyy');
-            $scope.event.eventFrom = $filter('date')(currentDateTime, 'hh:mm a');
-
-            var oneHourSpan = new Date(
-                currentDateTime.getYear(),
-                currentDateTime.getMonth(),
-                currentDateTime.getDay(),
-                currentDateTime.getHours() + 1,
-                currentDateTime.getMinutes(),
-                currentDateTime.getSeconds());
-            $scope.event.eventTo = $filter('date')(oneHourSpan, 'hh:mm a');
         } else { // event edit page
             $scope.eventSync = $firebase(fireRef.child('events').child($scope.eventId)).$asObject();
             $scope.groupListSync = $firebase(fireRef.child('groups')).$asArray();
@@ -399,6 +399,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
 
     $scope.goLookup = function() {
         $rootScope.event = $scope.event;
+        debugger;
         $rootScope.selectedGroupUser = $scope.selectedGroupUser;
 
         if (angular.isUndefined($scope.eventId))
