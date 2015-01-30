@@ -159,7 +159,9 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             timepicker: false,
             format: 'D, M j, Y',
             closeOnDateSelect: true,
+            minDate: 0,
             defaultDate: new Date(),
+            yearStart: new Date().getFullYear(),
             onChangeDateTime:function(dp, $input){
                 $scope.event.eventDate = $input.val();
             }
@@ -259,6 +261,8 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
 
             var current_date = new Date();
             var event_start_time = new Date(event.from);
+
+            if (current_date > event_start_time) continue;
 
             // Year
             if (current_date.getFullYear() == event_start_time.getFullYear()) {
