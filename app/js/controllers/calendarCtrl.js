@@ -16,9 +16,10 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     /* Initialize event detail page variables
      * Selected event is in rootscope from list page */
     var initDetailPageVariables = function () {
-        $scope.detailEvent.eventDateTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'EEE, MMM d yyyy');
-        $scope.detailEvent.eventTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'hh:mm a');
-        $scope.detailEvent.eventTimeTo = $filter('date')(new Date($scope.detailEvent.to), 'hh:mm a');
+        var fromDate = getLocalTime(new Date($scope.detailEvent.from));
+        $scope.detailEvent.eventDateTimeFrom = $filter('date')(fromDate, 'EEE, MMM d yyyy');
+        $scope.detailEvent.eventTimeFrom = $filter('date')(fromDate, 'hh:mm a');
+        $scope.detailEvent.eventTimeTo = $filter('date')(getLocalTime(new Date($scope.detailEvent.to)), 'hh:mm a');
 
         // Calculate members count involved in the event
         var memberList = [];
@@ -36,7 +37,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             $scope.isOwner = true;
     }
 
-     $scope.initDetailPage = function() {
+    $scope.initDetailPage = function() {
         $scope.isOwner = false; // Check if current user is a creator of this event
 
         $scope.detailEvent = $firebase(fireRef.child('events').child($stateParams.eventId)).$asObject();
@@ -61,7 +62,8 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
                 else
                     $scope.commentList[i].isSelf = false;
 
-                $scope.commentList[i].commentDate = $filter('date')(new Date($scope.commentList[i].created_date), 'EEE, MMM d yyyy, hh:mm a');
+                $scope.commentList[i].commentDate =
+                    $filter('date')(getLocalTime(new Date($scope.commentList[i].created_date)), 'EEE, MMM d yyyy, hh:mm a');
 
                 // Get first name
                 $scope.commentList[i].firstName =
@@ -126,7 +128,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
                 var oneHourSpan = new Date(
                     currentDateTime.getYear(),
                     currentDateTime.getMonth(),
-                    currentDateTime.getDay(),
+                    currentDateTime.getDate(),
                     currentDateTime.getHours() + 1,
                     currentDateTime.getMinutes(),
                     currentDateTime.getSeconds());
@@ -175,23 +177,37 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         });
 
         // Init From-To time picker
-        $('#eventFrom').datetimepicker({
-            datepicker: false,
-            closeOnDateSelect: true,
-            format: 'h:i a',
-            step: 30,
-            onChangeDateTime:function(dp, $input){
-                $scope.event.eventFrom = $input.val();
-            }
+        //$('#eventFrom').datetimepicker({
+        //    datepicker: false,
+        //    closeOnDateSelect: true,
+        //    format: 'h:i a',
+        //    step: 30,
+        //    onChangeDateTime:function(dp, $input){
+        //        $scope.event.eventFrom = $input.val();
+        //    }
+        //});
+        //$('#eventTo').datetimepicker({
+        //    datepicker: false,
+        //    closeOnDateSelect: true,
+        //    format: 'h:i a',
+        //    step: 30,
+        //    onChangeDateTime:function(dp, $input){
+        //        $scope.event.eventTo = $input.val();
+        //    }
+        //});
+        $("#eventFromBox").DateTimePicker({
+            timeMeridiemSeparator: " ",
+            timeFormat: "hh:mm AA",
+            titleContentTime: "Event From",
+            buttonsToDisplay: ["SetButton"],
+            clearButtonContent: null
         });
-        $('#eventTo').datetimepicker({
-            datepicker: false,
-            closeOnDateSelect: true,
-            format: 'h:i a',
-            step: 30,
-            onChangeDateTime:function(dp, $input){
-                $scope.event.eventTo = $input.val();
-            }
+
+        $("#eventToBox").DateTimePicker({
+            timeMeridiemSeparator: " ",
+            timeFormat: "hh:mm AA",
+            titleContentTime: "Event To",
+            buttonsToDisplay: ["HeaderCloseButton", "SetButton"]
         });
 
         // Once group list is loaded, retrieves group list and members involved to this event
@@ -218,9 +234,11 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             $scope.event.id = $scope.eventSync.$id;
             $scope.event.title = $scope.eventSync.title;
             $scope.event.address = $scope.eventSync.address;
-            $scope.event.eventDate = $filter('date')(new Date($scope.eventSync.from), 'EEE, MMM d yyyy');
-            $scope.event.eventFrom = $filter('date')(new Date($scope.eventSync.from), 'hh:mm a');
-            $scope.event.eventTo = $filter('date')(new Date($scope.eventSync.to), 'hh:mm a');
+
+            var fromDate = getLocalTime(new Date($scope.eventSync.from));
+            $scope.event.eventDate = $filter('date')(fromDate, 'EEE, MMM d yyyy');
+            $scope.event.eventFrom = $filter('date')(fromDate, 'hh:mm a');
+            $scope.event.eventTo = $filter('date')(getLocalTime(new Date($scope.eventSync.to)), 'hh:mm a');
             $scope.event.group = getGroupUserFrom($scope.selectedGroupUser);
         })
     }
@@ -267,28 +285,28 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             event.members = memberList.length;
 
             var current_date = new Date();
-            var compare_date = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDay());
-            var event_start_time = new Date(event.from);
+            var compare_date = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDate()); // Set local time 00:00
+            var event_start_time = getLocalTime(new Date(event.from));
 
             // Display only upcoming events
             if (compare_date > event_start_time) continue;
 
             // Year
-            if (current_date.getFullYear() == event_start_time.getFullYear()) {
+            if (compare_date.getFullYear() == event_start_time.getFullYear()) {
                 $scope.yearList.push(event);
 
                 // Month
-                if (current_date.getMonth() == event_start_time.getMonth()) {
+                if (compare_date.getMonth() == event_start_time.getMonth()) {
                     $scope.monthList.push(event);
 
                     // Week
-                    var current_week = $filter('date')(current_date, 'ww');
+                    var current_week = $filter('date')(compare_date, 'ww');
                     var event_week = $filter('date')(event_start_time, 'ww');
                     if (current_week == event_week) {
                         $scope.weekList.push(event);
 
                         // Day
-                        if (current_date.getDate() == event_start_time.getDate()) {
+                        if (compare_date.getDate() == event_start_time.getDate()) {
                             $scope.dayList.push(event);
                         }
                     }
@@ -370,6 +388,9 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
 
     $scope.createEvent = function(isEdit) {
         // convert datetime format
+        $scope.event.eventFrom = $('#eventFrom').val();
+        $scope.event.eventTo = $('#eventTo').val();
+        if ($scope.event.eventFrom == '' || $scope.event.eventTo == '') return false;
         var date_from_tmp = new Date(Date.parse($scope.event.eventDate + " " + $scope.event.eventFrom));
         date_from_tmp = getGMTDateTime(date_from_tmp);
         var date_to_tmp = new Date(Date.parse($scope.event.eventDate + " " + $scope.event.eventTo));
@@ -425,6 +446,9 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
     }
 
     $scope.goLookup = function() {
+        $scope.event.eventFrom = $('#eventFrom').val();
+        $scope.event.eventTo = $('#eventTo').val();
+
         $rootScope.event = $scope.event;
         $rootScope.selectedGroupUser = $scope.selectedGroupUser;
 
@@ -449,7 +473,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         $scope.commentsSync.$add({
             comment: $scope.comment,
             created_by: $scope.profile.uid,
-            created_date: $filter('date')(new Date(), 'yyyy/MM/dd HH:mm')
+            created_date: $filter('date')(getGMTDateTime(new Date()), 'yyyy/MM/dd HH:mm')
         });
 
         $scope.comment = "";
