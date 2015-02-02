@@ -307,7 +307,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
 
     // Extract only time in format (HH:MM AM) from full event date
     function getTimeWithoutDate(full_date) {
-        return $filter('date')(new Date(full_date), 'hh:mm a');
+        return $filter('date')(getLocalTime(new Date(full_date)), 'hh:mm a');
     }
 
     $scope.showEventList = function(type) {
@@ -333,7 +333,7 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         // Group event list by day
         for (var i = 0; i < $scope.tmpList.length; i++) {
             var ev = $scope.tmpList[i];
-            var date_str = $filter('date')(new Date(ev.from), 'EEEE, MMM d');
+            var date_str = $filter('date')(getLocalTime(new Date(ev.from)), 'EEEE, MMM d');
             ev.time = getTimeWithoutDate(ev.from);
 
             var day_obj = null;
@@ -356,10 +356,24 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
         console.log($scope.showList);
     }
 
+    /* Convert date in local timezone into GMT time */
+    var getGMTDateTime = function(date) {
+        var timezoneOffset = date.getTimezoneOffset();
+        return new Date(date.setUTCHours(date.getUTCHours() + timezoneOffset / 60));
+    }
+
+    /* Convert GMT time to local time */
+    var getLocalTime = function(dateGMT) {
+        var localTimeZoneOffset = new Date().getTimezoneOffset();
+        return new Date(dateGMT.setUTCHours(dateGMT.getUTCHours() - localTimeZoneOffset / 60));
+    }
+
     $scope.createEvent = function(isEdit) {
         // convert datetime format
         var date_from_tmp = new Date(Date.parse($scope.event.eventDate + " " + $scope.event.eventFrom));
+        date_from_tmp = getGMTDateTime(date_from_tmp);
         var date_to_tmp = new Date(Date.parse($scope.event.eventDate + " " + $scope.event.eventTo));
+        date_to_tmp = getGMTDateTime(date_to_tmp);
 
         var group = {};
         for (var item in $scope.selectedGroupUser) {
