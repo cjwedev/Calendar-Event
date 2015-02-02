@@ -15,33 +15,40 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
 
     /* Initialize event detail page variables
      * Selected event is in rootscope from list page */
-    $scope.initDetailPage = function() {
+    var initDetailPageVariables = function () {
+        $scope.detailEvent.eventDateTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'EEE, MMM d yyyy');
+        $scope.detailEvent.eventTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'hh:mm a');
+        $scope.detailEvent.eventTimeTo = $filter('date')(new Date($scope.detailEvent.to), 'hh:mm a');
+
+        // Calculate members count involved in the event
+        var memberList = [];
+        memberList.push($scope.detailEvent.created_by);
+        for (var item in $scope.detailEvent.group) {
+            for (var usr in $scope.detailEvent.group[item]) {
+                if (memberList.indexOf(usr) < 0)
+                    memberList.push(usr);
+            }
+        }
+        $scope.detailEvent.members = memberList.length;
+
+        // Check if the current user is owner of this event
+        if ($scope.detailEvent.created_by == $scope.profile.uid)
+            $scope.isOwner = true;
+    }
+
+     $scope.initDetailPage = function() {
         $scope.isOwner = false; // Check if current user is a creator of this event
 
         $scope.detailEvent = $firebase(fireRef.child('events').child($stateParams.eventId)).$asObject();
+        $scope.$watch('detailEvent.comments', function() {
+            initDetailPageVariables();
+        })
         $scope.$watch('detailEvent.title', function() {
-            $scope.detailEvent.eventDateTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'EEE, MMM d yyyy');
-            $scope.detailEvent.eventTimeFrom = $filter('date')(new Date($scope.detailEvent.from), 'hh:mm a');
-            $scope.detailEvent.eventTimeTo = $filter('date')(new Date($scope.detailEvent.to), 'hh:mm a');
-
-            // Calculate members count involved in the event
-            var memberList = [];
-            memberList.push($scope.detailEvent.created_by);
-            for (var item in $scope.detailEvent.group) {
-                for (var usr in $scope.detailEvent.group[item]) {
-                    if (memberList.indexOf(usr) < 0)
-                        memberList.push(usr);
-                }
-            }
-            $scope.detailEvent.members = memberList.length;
-
-            // Check if the current user is owner of this event
-            if ($scope.detailEvent.created_by == $scope.profile.uid)
-                $scope.isOwner = true;
+            initDetailPageVariables();
         })
 
-        // Initialize comment list
-        $scope.commentsSync = $firebase(fireRef.child('comments').child($stateParams.eventId).orderByChild('created_date')).$asArray();
+        //Initialize comment list
+        $scope.commentsSync = $firebase(fireRef.child('events').child($stateParams.eventId).child('comments').orderByChild('created_date')).$asArray();
         $scope.$watch('commentsSync.length', function() {
             if (angular.isUndefined($scope.commentsSync)) {
                 return;
@@ -260,9 +267,11 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             event.members = memberList.length;
 
             var current_date = new Date();
+            var compare_date = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDay());
             var event_start_time = new Date(event.from);
 
-            if (current_date > event_start_time) continue;
+            // Display only upcoming events
+            if (compare_date > event_start_time) continue;
 
             // Year
             if (current_date.getFullYear() == event_start_time.getFullYear()) {
@@ -285,8 +294,15 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
                     }
                 }
             }
-            $scope.showEventList('year');
+
+            // Calculate comments count
+            var commentCount = 0;
+            for (var comment in event.comments) {
+                commentCount ++;
+            }
+            event.commentCount = commentCount;
         }
+        $scope.showEventList('year');
     });
 
     // Extract only time in format (HH:MM AM) from full event date
@@ -390,16 +406,12 @@ var CalendarCtrl = function ($rootScope, $scope, $state, $cookieStore, $filter, 
             // Delete event
             $firebase(fireRef.child('events')).$remove($scope.eventSync.$id);
 
-            // Delete comments
-            $firebase(fireRef.child('comments')).$remove($scope.eventSync.$id);
-
             $state.go('eventList');
         }
     }
 
     $scope.goLookup = function() {
         $rootScope.event = $scope.event;
-        debugger;
         $rootScope.selectedGroupUser = $scope.selectedGroupUser;
 
         if (angular.isUndefined($scope.eventId))

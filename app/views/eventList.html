@@ -56,6 +56,7 @@
                 <div class="col-xs-6">
                     <div class="event-title">{{ event.title }}</div>
                     <div>{{ event.members }} members</div>
+                    <div ng-show="event.commentCount > 0">{{ event.commentCount }} comments</div>
                 </div>
                 <div class="col-xs-3 text-right event-alert"><span class="circle"></span></div>
             </div>
